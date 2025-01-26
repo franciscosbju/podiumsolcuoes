@@ -26,7 +26,11 @@ def baixar_excel(df, nome_arquivo):
     )
 
 # Configuração inicial do Streamlit
-st.set_page_config(page_title="Dashboard de Processos Seletivos", layout="wide")
+st.set_page_config(
+    page_title="Dashboard de Processos Seletivos",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # Adicionar logotipo e título
 st.markdown(
