@@ -39,12 +39,6 @@ agora = datetime.now().astimezone(fuso_horario_brasilia)
 data_atualizacao = agora.strftime("%d/%m/%Y")
 hora_atualizacao = agora.strftime("%H:%M")
 
-# Exibir a data e hora de atualização
-st.markdown(
-    f"<p style='text-align:right; color:#006eadff;'>Data Atualização: {data_atualizacao} | Hora: {hora_atualizacao}</p>",
-    unsafe_allow_html=True
-)
-
 # Adicionar logotipo e título
 st.markdown(
     """
