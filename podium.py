@@ -33,18 +33,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Configuração do fuso horário para o horário de Brasília
-fuso_horario_brasilia = timezone('America/Sao_Paulo')
-agora = datetime.now().astimezone(fuso_horario_brasilia)
-data_atualizacao = agora.strftime("%d/%m/%Y")
-hora_atualizacao = agora.strftime("%H:%M")
-
-# Exibir a data e hora de atualização
-st.markdown(
-    f"<p style='text-align:right; color:#006eadff;'>Data Atualização: {data_atualizacao} | Hora: {hora_atualizacao}</p>",
-    unsafe_allow_html=True
-)
-
 # Adicionar logotipo e título
 st.markdown(
     """
@@ -85,10 +73,15 @@ except Exception as e:
     st.error(f"Erro ao carregar a planilha do Google Sheets: {e}")
     st.stop()
 
-# Exibir a data e hora da última atualização
+# Configuração do fuso horário para o horário de Brasília
+fuso_horario_brasilia = timezone('America/Sao_Paulo')
+agora = datetime.now().astimezone(fuso_horario_brasilia)
+data_atualizacao = agora.strftime("%d/%m/%Y")
+hora_atualizacao = agora.strftime("%H:%M")
+
+# Exibir a data e hora de atualização
 st.markdown(
-    f"<p style='text-align: right; font-size: 16px; color: #006eadff;'>"
-    f"Data Atualização: {data_hora_atualizacao.strftime('%d/%m/%Y')} | Hora: {data_hora_atualizacao.strftime('%H:%M')}</p>",
+    f"<p style='text-align:right; color:#006eadff;'>Data Atualização: {data_atualizacao} | Hora: {hora_atualizacao}</p>",
     unsafe_allow_html=True
 )
 
