@@ -33,11 +33,17 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Configuração do fuso horário para o horário brasileiro
+# Configuração do fuso horário para o horário de Brasília
 fuso_horario_brasilia = timezone('America/Sao_Paulo')
-agora = datetime.now(fuso_horario_brasilia)
+agora = datetime.now().astimezone(fuso_horario_brasilia)
 data_atualizacao = agora.strftime("%d/%m/%Y")
 hora_atualizacao = agora.strftime("%H:%M")
+
+# Exibir a data e hora de atualização
+st.markdown(
+    f"<p style='text-align:right; color:#006eadff;'>Data Atualização: {data_atualizacao} | Hora: {hora_atualizacao}</p>",
+    unsafe_allow_html=True
+)
 
 # Adicionar logotipo e título
 st.markdown(
