@@ -8,19 +8,6 @@ import requests  # Para acessar o arquivo no Google Sheets
 import time  # Para controle do temporizador
 from pytz import timezone
 
-# Definir o fuso horário para o horário de Brasília
-fuso_horario_brasilia = timezone('America/Sao_Paulo')
-agora = datetime.now(fuso_horario_brasilia)
-
-# Exibir a data e hora no formato brasileiro
-data_atualizacao = agora.strftime("%d/%m/%Y")
-hora_atualizacao = agora.strftime("%H:%M")
-
-st.markdown(
-    f"<p style='text-align:right; color:#006eadff;'>Data Atualização: {data_atualizacao} | Hora: {hora_atualizacao}</p>",
-    unsafe_allow_html=True
-)
-
 # Função para calcular dias úteis
 def calcular_dias_uteis(data_inicio, data_fim):
     dias_uteis = pd.date_range(start=data_inicio, end=data_fim, freq='B')
@@ -45,6 +32,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed"
 )
+
+# Configuração do fuso horário para o horário brasileiro
+fuso_horario_brasilia = timezone('America/Sao_Paulo')
+agora = datetime.now(fuso_horario_brasilia)
+data_atualizacao = agora.strftime("%d/%m/%Y")
+hora_atualizacao = agora.strftime("%H:%M")
 
 # Adicionar logotipo e título
 st.markdown(
