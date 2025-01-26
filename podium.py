@@ -56,18 +56,15 @@ if time.time() - st.session_state.last_refresh > 60:
     st.session_state.last_refresh = time.time()
     st.experimental_rerun()
 
-# Tentar carregar os dados diretamente do Google Sheets
-try:
+# Carregar dados do Google Sheets com cache de 60 segundos
+@st.cache_data(ttl=60)
+def carregar_dados_google_sheets():
     response = requests.get(google_sheets_url)
     response.raise_for_status()
-    # Extraindo a data e hora da última modificação dos cabeçalhos HTTP
-    ultima_modificacao = response.headers.get("Last-Modified", None)
-    if ultima_modificacao:
-        data_hora_atualizacao = datetime.strptime(ultima_modificacao, "%a, %d %b %Y %H:%M:%S %Z")
-    else:
-        data_hora_atualizacao = datetime.now()  # Caso não seja possível obter, usa o horário atual
-    
-    df = pd.read_excel(BytesIO(response.content), sheet_name="Processo seletivo")
+    return pd.read_excel(BytesIO(response.content), sheet_name="Processo seletivo")
+
+try:
+    df = carregar_dados_google_sheets()
     st.info("Dados carregados automaticamente do Google Sheets.")
 except Exception as e:
     st.error(f"Erro ao carregar a planilha do Google Sheets: {e}")
