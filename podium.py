@@ -6,15 +6,14 @@ from datetime import datetime
 from io import BytesIO
 import requests
 from pytz import timezone
-import time
 
 # Função para calcular dias úteis
 def calcular_dias_uteis(data_inicio, data_fim):
     dias_uteis = pd.date_range(start=data_inicio, end=data_fim, freq='B')
     return len(dias_uteis)
 
-# Função para gerar arquivo Excel para download
-def baixar_excel(df, nome_arquivo):
+# Função para gerar arquivo Excel para download com chave única
+def baixar_excel(df, nome_arquivo, key=None):
     buffer = BytesIO()
     with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
         df.to_excel(writer, index=False, sheet_name='Dados')
@@ -23,7 +22,8 @@ def baixar_excel(df, nome_arquivo):
         label=f"📥 Baixar {nome_arquivo}",
         data=buffer.getvalue(),
         file_name=f"{nome_arquivo}.xlsx",
-        mime="application/vnd.ms-excel"
+        mime="application/vnd.ms-excel",
+        key=key  # Adiciona chave única
     )
 
 # Configuração inicial do Streamlit
@@ -33,13 +33,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Adicionar logotipo e título
+# Adicionar logotipo, título e linha separadora
 st.markdown(
     """
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h1 style="text-align: left; color: #006eadff; margin: 0;">Processos Seletivos - PODIUM SOLUÇÕES</h1>
         <img src="https://imgur.com/cJQXp1t.png" style="height: 160px; margin-right: 20px;">
     </div>
+    <hr style="border: 2px solid #bca175; margin-top: 10px; margin-bottom: 20px;">
     """,
     unsafe_allow_html=True
 )
@@ -47,7 +48,8 @@ st.markdown(
 # URL do Google Sheets para exportar em formato XLSX
 google_sheets_url = "https://docs.google.com/spreadsheets/d/1kA2sPD14H-A2ea7pg_0d_MOhe6uiGRT0/export?format=xlsx"
 
-# Função para carregar dados do Google Drive
+# Função para carregar dados do Google Sheets
+@st.cache_data
 def carregar_dados_google_drive(url):
     try:
         response = requests.get(url)
@@ -57,19 +59,28 @@ def carregar_dados_google_drive(url):
         st.error(f"Erro ao carregar a planilha do Google Drive: {e}")
         return None
 
-# Atualização automática a cada 60 segundos
-if "last_refresh" not in st.session_state:
-    st.session_state.last_refresh = datetime.now()
+# Botão para atualizar dados (sem o botão de download aqui)
+if st.button("Atualizar Dados"):
+    st.cache_data.clear()
+    st.session_state.refresh_data = True
 
-if (datetime.now() - st.session_state.last_refresh).seconds > 60:
-    st.session_state.last_refresh = datetime.now()
-    st.experimental_rerun()
+# Inicializa o estado de atualização
+if "refresh_data" not in st.session_state:
+    st.session_state.refresh_data = True
 
-# Carregar os dados e tratar erros
-df = carregar_dados_google_drive(google_sheets_url)
+# Carregar os dados apenas se necessário
+if st.session_state.refresh_data:
+    df = carregar_dados_google_drive(google_sheets_url)
+    if df is not None:
+        st.session_state.refresh_data = False
+    else:
+        st.stop()
 
-if df is None:
-    st.stop()
+# Certifique-se de que o `df` esteja sempre definido
+if "df" not in st.session_state or st.session_state.refresh_data:
+    st.session_state.df = carregar_dados_google_drive(google_sheets_url)
+
+df = st.session_state.df
 
 # Configuração do fuso horário para o horário de Brasília
 fuso_horario_brasilia = timezone('America/Sao_Paulo')
@@ -173,7 +184,7 @@ col1, col2 = st.columns(2)
 with col1:
     tabela_processos = df_filtrado[['Empresa', 'Cargo', 'Status', 'Nível', 'Qtd dias (úteis)']].sort_values(by='Qtd dias (úteis)', ascending=False)
     st.dataframe(tabela_processos, use_container_width=True)
-    baixar_excel(tabela_processos, "Tabela_Processos")
+    baixar_excel(tabela_processos, "Tabela_Processos", key="baixar_tabela_processos")  # Chave única para este botão
 
 # Tabela Dias Parados por Status
 with col2:
@@ -182,4 +193,4 @@ with col2:
     dias_status = dias_status.sort_values(by='Dias Parados', ascending=False)
     dias_status['Dias Parados'] = dias_status['Dias Parados'].apply(lambda x: f"{x:,.0f}".replace(",", "."))
     st.dataframe(dias_status, use_container_width=True)
-    baixar_excel(dias_status, "Dias_Parados_Por_Status")
+    baixar_excel(dias_status, "Dias_Parados_Por_Status", key="baixar_dias_parados")  # Outra chave única
