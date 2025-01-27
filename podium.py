@@ -4,9 +4,9 @@ import streamlit as st
 import plotly.express as px
 from datetime import datetime
 from io import BytesIO
-import requests  # Para acessar o arquivo no Google Sheets
-import time  # Para controle do temporizador
+import requests
 from pytz import timezone
+import time
 
 # Função para calcular dias úteis
 def calcular_dias_uteis(data_inicio, data_fim):
@@ -47,27 +47,28 @@ st.markdown(
 # URL do Google Sheets para exportar em formato XLSX
 google_sheets_url = "https://docs.google.com/spreadsheets/d/1kA2sPD14H-A2ea7pg_0d_MOhe6uiGRT0/export?format=xlsx"
 
-# Atualização automática usando tempo
-if "last_refresh" not in st.session_state:
-    st.session_state.last_refresh = time.time()
+# Função para carregar dados do Google Drive
+def carregar_dados_google_drive(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return pd.read_excel(BytesIO(response.content), engine="openpyxl", sheet_name="Processo seletivo")
+    except Exception as e:
+        st.error(f"Erro ao carregar a planilha do Google Drive: {e}")
+        return None
 
-# Se passaram 60 segundos desde a última atualização, forçar recarregamento
-if time.time() - st.session_state.last_refresh > 60:
-    st.session_state.last_refresh = time.time()
+# Atualização automática a cada 60 segundos
+if "last_refresh" not in st.session_state:
+    st.session_state.last_refresh = datetime.now()
+
+if (datetime.now() - st.session_state.last_refresh).seconds > 60:
+    st.session_state.last_refresh = datetime.now()
     st.experimental_rerun()
 
-# Carregar dados do Google Sheets com cache de 60 segundos
-@st.cache_data(ttl=60)
-def carregar_dados_google_sheets():
-    response = requests.get(google_sheets_url)
-    response.raise_for_status()
-    return pd.read_excel(BytesIO(response.content), sheet_name="Processo seletivo")
+# Carregar os dados e tratar erros
+df = carregar_dados_google_drive(google_sheets_url)
 
-try:
-    df = carregar_dados_google_sheets()
-    st.info("Dados carregados automaticamente do Google Sheets.")
-except Exception as e:
-    st.error(f"Erro ao carregar a planilha do Google Sheets: {e}")
+if df is None:
     st.stop()
 
 # Configuração do fuso horário para o horário de Brasília
