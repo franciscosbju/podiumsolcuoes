@@ -59,9 +59,8 @@ def carregar_dados_google_drive(url):
         st.error(f"Erro ao carregar a planilha do Google Drive: {e}")
         return None
 
-# Botão para atualizar dados (sem o botão de download aqui)
+# Botão para atualizar dados
 if st.button("Atualizar Dados"):
-    st.cache_data.clear()
     st.session_state.refresh_data = True
 
 # Inicializa o estado de atualização
